@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <title>NCO_205</title>
+</head>
+<body>
+  <div class="content">
+    <!-- Ride platform name -->
+    <h1 id="platformName">Ride Details</h1>
+
+    <!-- Map for ride details -->
+    <div id="rideMap" style="height:400px;"></div>
+
+    <!-- Sorting controls -->
+    <div class="sort-controls">
+      <label for="sortBy">Sort by:</label>
+      <select id="sortBy">
+        <option value="price">Lowest Price</option>
+        <option value="time" selected>Shortest Time</option>
+      </select>
+    </div>
+
+    <!-- Car info list -->
+    <div id="cars" class="cars-list"></div>
+  </div>
+
+  <footer class="bottom-nav">
+    <button onclick="window.location.href='about.html'">About</button>
+    <button onclick="window.location.href='error.html'">FAQ</button>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="js/script.js?v=1.1"></script>
+</body>
+</html>
+

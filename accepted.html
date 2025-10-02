@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <title>NCO_205</title>
+</head>
+
+<body>
+    <div class="content">
+    <h1>Ride Accepted</h1>
+
+    <!-- Driver Info Card -->
+    <div class="driver-card">
+        <img src="images/driver.png" alt="Driver Picture" class="driver-photo">
+        <div class="driver-details">
+            <p><strong>Name:</strong> <span id="driverName"></span></p>
+            <p><strong>Car Model:</strong> <span id="carModel"></span></p>
+            <p><strong>Car Plate:</strong> <span id="carPlate"></span></p>
+            <p><strong>Rating:</strong> ⭐ <span id="driverRating"></span>/5</p>
+        </div>
+    </div>
+
+    <!-- Cancel Button -->
+    <button id="cancelBtn" class="cancel-button">Cancel Booking</button>
+
+        <div id="acceptedMap" style="aspect-ratio:16/9; border-radius:10px;"></div>
+        <p id="timer"></p>
+    </div>
+
+
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="js/script.js?v=1.0"></script>
+</body>
+
+</html>

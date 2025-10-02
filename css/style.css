@@ -1,0 +1,287 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  background: #f4f4f9;
+  color: #333;
+  min-width: 360px; 
+}
+
+header {
+  background: #333;
+  color: #fff;
+  padding: 10px 20px;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav .logo {
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  font-weight: 500;
+}
+
+nav ul li a:hover {
+  color: #ff9800;
+}
+
+/* Mobile Menu */
+@media (max-width: 768px) {
+  nav ul {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: #333;
+    flex-direction: column;
+    width: 220px;
+    display: none;
+    padding: 15px;
+    border-radius: 0 0 12px 12px;
+  }
+
+  nav ul.active {
+    display: flex;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+}
+
+/* Main Content */
+.content {
+  width: 90%;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* Map Styling */
+#map, 
+#rideMap, 
+#acceptedMap {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  margin: 15px 0;
+  min-height: 250px;
+  border: 2px solid #eee;
+}
+
+/* Sorting Controls */
+.sort-controls {
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sort-controls label {
+  font-weight: 600;
+}
+
+.sort-controls select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+/* Ride + Car Cards */
+.riders, 
+.car-card {
+  width: 100%;
+  padding: 15px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin: 10px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.riders:hover, 
+.car-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.car-card img {
+  width: 48px;
+  height: 48px;
+}
+
+/* Utility */
+.hidden {
+  display: none;
+}
+
+/* Timer */
+#timer {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 15px;
+  color: #444;
+}
+
+.driver-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.driver-photo {
+    width: 80px;
+    height: 80px;
+
+}
+
+.driver-details p {
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.cancel-button {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    margin: 10px 0 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cancel-button:hover {
+    background: #e60000;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    border-top: 1px solid #ccc;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.bottom-nav button {
+    background: none;
+    border: none;
+    font-size: 16px;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #333;
+    transition: 0.2s;
+}
+
+.bottom-nav button:hover {
+    color: #007bff;
+}
+
+/* Container for input + suggestions */
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 10px;
+}
+
+/* Search input */
+#locationSearch {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* Suggestions list */
+#suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Individual suggestion */
+#suggestions li {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+
+#suggestions li:last-child {
+  border-bottom: none;
+}
+
+/* Highlight on hover */
+#suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
+/* Building name */
+.suggestion-name {
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Address */
+.suggestion-address {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
