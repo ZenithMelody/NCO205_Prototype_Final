@@ -17,72 +17,175 @@ if (mapEl) {
 // ---------------- Load Locations ----------------
 let locationsData = [];
 const regions = ["north", "south", "east", "west", "central"];
-Promise.all(regions.map(r => fetch(`data/${r}.json`).then(res => res.json())))
-  .then(dataArrays => { locationsData = dataArrays.flat(); })
-  .catch(err => console.error("Failed to load locations:", err));
 
-// ---------------- Auto-set Start Location ----------------
-const searchInput = document.getElementById("locationSearch");
-if (navigator.geolocation && map) {
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      const userLat = pos.coords.latitude;
-      const userLng = pos.coords.longitude;
+const startInputEl = document.getElementById("startSearch");
+const endInputEl = document.getElementById("endSearch");
 
-      const waitForLocations = setInterval(() => {
-        if (locationsData.length > 0) {
-          clearInterval(waitForLocations);
+if (startInputEl) startInputEl.placeholder = "Loading locations...";
+if (endInputEl) endInputEl.placeholder = "Loading locations...";
 
-          // Find nearest location in JSON
-          let nearest = locationsData[0], minDist = Infinity;
-          locationsData.forEach(loc => {
-            const lat = parseFloat(loc.LATITUDE), lng = parseFloat(loc.LONGITUDE);
-            const dist = Math.hypot(userLat - lat, userLng - lng);
-            if (dist < minDist) { minDist = dist; nearest = loc; }
-          });
+Promise.all(
+  regions.map(r => fetch(`data/${r}.json`).then(res => res.json()))
+).then(dataArrays => {
+  locationsData = dataArrays.flat();
+  console.log("Loaded locations:", locationsData.length);
 
-          addStart([parseFloat(nearest.LATITUDE), parseFloat(nearest.LONGITUDE)]);
-          map.setView([parseFloat(nearest.LATITUDE), parseFloat(nearest.LONGITUDE)], 14);
-          if (searchInput) searchInput.placeholder = "Search your destination...";
-        }
-      }, 50);
-    },
-    err => console.warn("Geolocation error:", err),
-    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-  );
-}
+  if (startInputEl && endInputEl) {
+    setupSearch("startSearch", "startSuggestions", (latlng, loc) => addStart(latlng));
+    setupSearch("endSearch", "endSuggestions", (latlng, loc) => addDestination(latlng));
 
-// ---------------- Autocomplete Search ----------------
-const suggestionsList = document.getElementById("suggestions");
-if (searchInput && suggestionsList) {
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase();
-    suggestionsList.innerHTML = "";
-    if (!locationsData.length || query.length < 1) return;
+    startInputEl.placeholder = "Search starting point...";
+    endInputEl.placeholder = "Search destination...";
+  }
+}).catch(err => {
+  console.error("Failed to load locations:", err);
+  if (startInputEl) startInputEl.placeholder = "Error loading data";
+  if (endInputEl) endInputEl.placeholder = "Error loading data";
+});
 
-    locationsData.filter(loc =>
-      loc.SEARCHVAL.toLowerCase().includes(query) ||
-      loc.ADDRESS.toLowerCase().includes(query)
-    ).slice(0, 5).forEach(loc => {
+Promise.all(
+  regions.map(r => fetch(`data/${r}.json`).then(res => res.json()))
+).then(dataArrays => {
+
+  locationsData = dataArrays.flat();
+
+  console.log("Loaded locations:", locationsData.length);
+
+  setupSearch("startSearch", "startSuggestions", (latlng, loc) => addStart(latlng));
+  setupSearch("endSearch", "endSuggestions", (latlng, loc) => addDestination(latlng));
+
+  // update placeholder back
+  document.getElementById("startSearch").placeholder = "Search starting point...";
+  document.getElementById("endSearch").placeholder = "Search destination...";
+}).catch(err => {
+  console.error("Failed to load locations:", err);
+  document.getElementById("startSearch").placeholder = "Error loading data";
+  document.getElementById("endSearch").placeholder = "Error loading data";
+});
+
+
+// ---------------- Autocomplete Search for Start & Destination ----------------
+const startInput = document.getElementById("startSearch");
+const endInput = document.getElementById("endSearch");
+const startSuggestions = document.getElementById("startSuggestions");
+const endSuggestions = document.getElementById("endSuggestions");
+
+// --- Improved autocomplete for start/end with keyboard navigation ---
+function setupSearch(inputId, suggestionsId, onSelectCallback) {
+  const input = document.getElementById(inputId);
+  const suggestionsEl = document.getElementById(suggestionsId);
+  if (!input || !suggestionsEl) return;
+
+  let activeIndex = -1;
+  let currentResults = [];
+  let debounceTimer = null;
+
+  function clearSuggestions() {
+    suggestionsEl.innerHTML = "";
+    activeIndex = -1;
+    currentResults = [];
+  }
+
+  function renderResults(results) {
+    suggestionsEl.innerHTML = "";
+    currentResults = results;
+    activeIndex = -1;
+
+    results.forEach((loc, i) => {
       const li = document.createElement("li");
-      const nameDiv = document.createElement("div");
-      nameDiv.classList.add("suggestion-name");
-      nameDiv.textContent = loc.SEARCHVAL;
-      const addressDiv = document.createElement("div");
-      addressDiv.classList.add("suggestion-address");
-      addressDiv.textContent = loc.ADDRESS;
-      li.appendChild(nameDiv);
-      li.appendChild(addressDiv);
+      li.setAttribute("role", "option");
+      li.dataset.index = i;
+      li.dataset.lat = loc.LATITUDE;
+      li.dataset.lng = loc.LONGITUDE;
 
-      li.addEventListener("click", () => {
-        addDestination([parseFloat(loc.LATITUDE), parseFloat(loc.LONGITUDE)]);
-        searchInput.value = loc.SEARCHVAL;
-        suggestionsList.innerHTML = "";
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "suggestion-name";
+      nameDiv.textContent = loc.SEARCHVAL;
+
+      const addrDiv = document.createElement("div");
+      addrDiv.className = "suggestion-address";
+      addrDiv.textContent = loc.ADDRESS;
+
+      li.appendChild(nameDiv);
+      li.appendChild(addrDiv);
+
+      li.addEventListener("mousedown", (ev) => {
+        // use mousedown to avoid blur before click
+        ev.preventDefault();
+        selectSuggestion(i);
       });
-      suggestionsList.appendChild(li);
+
+      suggestionsEl.appendChild(li);
     });
+  }
+
+  function selectSuggestion(index) {
+    if (index < 0 || index >= currentResults.length) return;
+    const loc = currentResults[index];
+    input.value = loc.SEARCHVAL;
+    clearSuggestions();
+    onSelectCallback([parseFloat(loc.LATITUDE), parseFloat(loc.LONGITUDE)], loc);
+    input.focus();
+  }
+
+  // Debounced search
+  function doSearch(q) {
+    if (!locationsData || !locationsData.length) return clearSuggestions();
+    const query = q.trim().toLowerCase();
+    if (!query) return clearSuggestions();
+
+    // filter and limit
+    const matches = locationsData.filter(loc =>
+      (loc.SEARCHVAL && loc.SEARCHVAL.toLowerCase().includes(query)) ||
+      (loc.ADDRESS && loc.ADDRESS.toLowerCase().includes(query))
+    )
+
+    if (matches.length) renderResults(matches);
+    else clearSuggestions();
+  }
+
+  // Input handler with small debounce
+  input.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => doSearch(input.value), 160);
+  });
+
+  function updateActive(items) {
+    items.forEach((it, idx) => {
+      if (idx === activeIndex) it.classList.add("suggestion-active");
+      else it.classList.remove("suggestion-active");
+    });
+
+    // ensure active is visible
+    const el = items[activeIndex];
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }
+
+  // Close suggestions on blur (allow short timeout for clicks)
+  input.addEventListener("blur", () => {
+    setTimeout(() => clearSuggestions(), 150);
+  });
+
+  // click outside closes suggestions
+  document.addEventListener("click", (ev) => {
+    if (!input.contains(ev.target) && !suggestionsEl.contains(ev.target)) {
+      clearSuggestions();
+    }
   });
 }
+
+// Attach searches (call this after locationsData has been loaded so suggestions work)
+setupSearch("startSearch", "startSuggestions", (latlng, loc) => {
+  addStart(latlng);
+  // optional: you can store the start selection in sessionStorage if needed:
+  // sessionStorage.setItem('selectedStart', JSON.stringify(loc));
+});
+
+setupSearch("endSearch", "endSuggestions", (latlng, loc) => {
+  addDestination(latlng);
+  // sessionStorage.setItem('selectedDest', JSON.stringify(loc));
+});
+
 
 // ---------------- Add Start / Destination ----------------
 function addStart(latlng) {
@@ -142,41 +245,67 @@ function randomizeRides() {
 document.addEventListener("DOMContentLoaded", () => {
   const carsDiv = document.getElementById("cars");
   const rideMapEl = document.getElementById("rideMap");
-  if (carsDiv && rideMapEl) {
-    const params = new URLSearchParams(window.location.search);
-    const startLat = parseFloat(params.get("startLat")) || 1.3521;
-    const startLng = parseFloat(params.get("startLng")) || 103.8198;
-    const destLat = parseFloat(params.get("destLat")) || 1.3521;
-    const destLng = parseFloat(params.get("destLng")) || 103.8198;
-    const prices = JSON.parse(decodeURIComponent(params.get("prices")||"[]"));
+  if (!carsDiv || !rideMapEl) return;
 
-    const rideMap = L.map("rideMap").setView([startLat, startLng], 14);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19, attribution:"© OpenStreetMap"}).addTo(rideMap);
-    L.marker([startLat,startLng]).addTo(rideMap).bindPopup("Start").openPopup();
-    L.marker([destLat,destLng]).addTo(rideMap).bindPopup("Destination");
-    L.polyline([[startLat,startLng],[destLat,destLng]],{color:"blue"}).addTo(rideMap);
+  const params = new URLSearchParams(window.location.search);
+  const startLat = parseFloat(params.get("startLat")) || 1.3521;
+  const startLng = parseFloat(params.get("startLng")) || 103.8198;
+  const destLat  = parseFloat(params.get("destLat"))  || 1.3521;
+  const destLng  = parseFloat(params.get("destLng"))  || 103.8198;
 
-    const drivers = prices.map(p => ({ price: parseFloat(p), eta: getRandomInt(2,12) }));
-    const carImages = ["https://img.icons8.com/color/48/car.png","https://img.icons8.com/color/48/taxi.png","https://img.icons8.com/color/48/suv.png"];
-
-    function renderDrivers(sortBy="time"){
-      if(sortBy==="price") drivers.sort((a,b)=>a.price-b.price);
-      else drivers.sort((a,b)=>a.eta-b.eta);
-      carsDiv.innerHTML = "";
-      drivers.forEach((driver,i)=>{
-        const carImg = carImages[getRandomInt(0,carImages.length-1)];
-        const car = document.createElement("div");
-        car.classList.add("car-card");
-        car.innerHTML = `<img src="${carImg}" alt="car"><p>Driver ${i+1} - $${driver.price} - ETA: ${driver.eta} mins</p>`;
-        carsDiv.appendChild(car);
-        car.onclick = ()=>window.location.href=`accepted.html?startLat=${startLat}&startLng=${startLng}&destLat=${destLat}&destLng=${destLng}&driver=${i+1}&eta=${driver.eta}`;
-      });
-    }
-    renderDrivers();
-    const sortBySelect = document.getElementById("sortBy");
-    if(sortBySelect) sortBySelect.onchange = (e)=>renderDrivers(e.target.value);
+  // Safe parsing of prices
+  let prices = [];
+  try {
+    prices = JSON.parse(decodeURIComponent(params.get("prices") || "[]"));
+  } catch (e) {
+    console.warn("Failed to parse prices:", e);
   }
+  if (!prices.length) prices = [(Math.random()*20+10).toFixed(2),(Math.random()*20+10).toFixed(2),(Math.random()*20+10).toFixed(2)];
+
+  // Initialize map
+  const rideMap = L.map("rideMap").setView([startLat, startLng], 14);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(rideMap);
+
+  L.marker([startLat, startLng]).addTo(rideMap).bindPopup("Start").openPopup();
+  L.marker([destLat, destLng]).addTo(rideMap).bindPopup("Destination");
+  L.polyline([[startLat,startLng],[destLat,destLng]],{color:"blue"}).addTo(rideMap);
+
+  // Drivers
+  const drivers = prices.map(p => ({ price: parseFloat(p), eta: getRandomInt(2,12) }));
+  const carImages = ["https://img.icons8.com/color/48/car.png","https://img.icons8.com/color/48/taxi.png","https://img.icons8.com/color/48/suv.png"];
+
+  function renderDrivers(sortBy="time") {
+    if(sortBy==="price") drivers.sort((a,b)=>a.price-b.price);
+    else drivers.sort((a,b)=>a.eta-b.eta);
+    carsDiv.innerHTML = "";
+
+    drivers.forEach((driver,i) => {
+      const carImg = carImages[getRandomInt(0,carImages.length-1)];
+      const car = document.createElement("div");
+      car.classList.add("car-card");
+      car.innerHTML = `<img src="${carImg}" alt="car"><p>Driver ${i+1} - $${driver.price.toFixed(2)} - ETA: ${driver.eta} mins</p>`;
+      carsDiv.appendChild(car);
+
+      // Marker on map for visual effect
+      const offsetLat = (Math.random() - 0.5) * 0.01;
+      const offsetLng = (Math.random() - 0.5) * 0.01;
+      L.marker([startLat+offsetLat, startLng+offsetLng], { icon: L.icon({ iconUrl: carImg, iconSize:[40,40], iconAnchor:[20,40] }) })
+        .addTo(rideMap)
+        .bindPopup(`Driver ${i+1} - $${driver.price.toFixed(2)} - ETA: ${driver.eta} mins`);
+
+      // Click to Accepted page
+      car.onclick = () => {
+        window.location.href = `accepted.html?startLat=${startLat}&startLng=${startLng}&destLat=${destLat}&destLng=${destLng}&driver=${i+1}&eta=${driver.eta}`;
+      };
+    });
+  }
+
+  renderDrivers();
+  const sortBySelect = document.getElementById("sortBy");
+  if(sortBySelect) sortBySelect.onchange = (e)=>renderDrivers(e.target.value);
 });
+
+
 
 // ---------------- Accepted Page ----------------
 document.addEventListener("DOMContentLoaded", () => {
@@ -273,5 +402,4 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
   }
-
 });

@@ -1,44 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <title>NCO_205</title>
-</head>
-<body>
-  <div class="content">
-    <h1>SwiftRide</h1>
+  </head>
+  <body>
+    <div class="content">
+      <h1>SwiftRide</h1>
 
-    <h2>Choose Your Trip</h2>
-    <p>Click on the Map (First = Start | Second = Destination) <br> or use the search bar below.</p>
+      <div class="search-pair">
+        <div class="search-container">
+          <input
+            id="startSearch"
+            type="text"
+            placeholder="Enter start location..."
+            autocomplete="off"
+          />
+          <ul
+            id="startSuggestions"
+            class="suggestions"
+            role="listbox"
+            aria-label="Start suggestions"
+          ></ul>
+        </div>
 
-    <div class="search-container">
-      <input type="text" id="locationSearch" placeholder="Search location...">
-      <ul id="suggestions"></ul>
+        <div class="search-container">
+          <input
+            id="endSearch"
+            type="text"
+            placeholder="Enter destination..."
+            autocomplete="off"
+          />
+          <ul
+            id="endSuggestions"
+            class="suggestions"
+            role="listbox"
+            aria-label="Destination suggestions"
+          ></ul>
+        </div>
+      </div>
+
+      <div id="map" style="height: 400px"></div>
     </div>
-    <div id="map" style="height: 400px;"></div>
-  </div>
 
-  <div class="content hidden" id="ridesContent">
-    <h1>Rides near you:</h1>
+    <div class="content hidden" id="ridesContent">
+      <h1>Rides near you:</h1>
 
-    <div class="riders"><p>Platform: Grab</p><p>Drivers: </p><p>Rate: </p></div>
-    <div class="riders"><p>Platform: GoJek</p><p>Drivers: </p><p>Rate: </p></div>
-    <div class="riders"><p>Platform: ComfortDelGo</p><p>Drivers: </p><p>Rate: </p></div>
-    <div class="riders"><p>Platform: TADA</p><p>Drivers: </p><p>Rate: </p></div>
-    <div class="riders"><p>Platform: Ryde</p><p>Drivers: </p><p>Rate: </p></div>
-    <div class="riders"><p>Platform: MooveGo</p><p>Drivers: </p><p>Rate: </p></div>
-    <div class="riders"><p>Platform: Cabify</p><p>Drivers: </p><p>Rate: </p></div>
-  </div>
+      <div class="riders">
+        <p>Platform: Grab</p>
+        <p>Drivers:</p>
+        <p>Rate:</p>
+      </div>
+      <div class="riders">
+        <p>Platform: GoJek</p>
+        <p>Drivers:</p>
+        <p>Rate:</p>
+      </div>
+      <div class="riders">
+        <p>Platform: ComfortDelGo</p>
+        <p>Drivers:</p>
+        <p>Rate:</p>
+      </div>
+      <div class="riders">
+        <p>Platform: TADA</p>
+        <p>Drivers:</p>
+        <p>Rate:</p>
+      </div>
+      <div class="riders">
+        <p>Platform: Ryde</p>
+        <p>Drivers:</p>
+        <p>Rate:</p>
+      </div>
+      <div class="riders">
+        <p>Platform: MooveGo</p>
+        <p>Drivers:</p>
+        <p>Rate:</p>
+      </div>
+      <div class="riders">
+        <p>Platform: Cabify</p>
+        <p>Drivers:</p>
+        <p>Rate:</p>
+      </div>
+    </div>
 
-  <footer class="bottom-nav">
-    <button onclick="window.location.href='about.html'">About</button>
-    <button onclick="window.location.href='error.html'">FAQ</button>
-  </footer>
+    <footer class="bottom-nav">
+      <button onclick="window.location.href='about.html'">About</button>
+      <button onclick="window.location.href='error.html'">FAQ</button>
+    </footer>
 
-   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="js/script.js?v=1.0"></script>
-</body>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="js/script.js?v=1.0"></script>
+  </body>
 </html>
