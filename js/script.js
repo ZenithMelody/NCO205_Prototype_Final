@@ -179,45 +179,99 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ---------------- Accepted Page ----------------
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener("DOMContentLoaded", () => {
   const mapEl = document.getElementById("acceptedMap");
-  if(mapEl){
+  if (mapEl) {
     const params = new URLSearchParams(window.location.search);
     const startLat = parseFloat(params.get("startLat"));
     const startLng = parseFloat(params.get("startLng"));
     const destLat = parseFloat(params.get("destLat"));
     const destLng = parseFloat(params.get("destLng"));
     const driverChosen = params.get("driver");
-    let countdown = parseInt(params.get("eta"))*60 || 300;
+    let countdown = parseInt(params.get("eta")) * 60 || 300;
 
-    const acceptedMap = L.map("acceptedMap").setView([startLat,startLng],14);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19, attribution:"© OpenStreetMap"}).addTo(acceptedMap);
-    L.marker([startLat,startLng]).addTo(acceptedMap).bindPopup("Start").openPopup();
-    L.marker([destLat,destLng]).addTo(acceptedMap).bindPopup("Destination");
-    L.polyline([[startLat,startLng],[destLat,destLng]],{color:"blue"}).addTo(acceptedMap);
+    // Initialize map
+    const acceptedMap = L.map("acceptedMap").setView([startLat, startLng], 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "© OpenStreetMap",
+    }).addTo(acceptedMap);
 
-    const carIcon = L.icon({iconUrl:"https://img.icons8.com/color/48/car.png",iconSize:[40,40],iconAnchor:[20,40],popupAnchor:[0,-40]});
-    L.marker([startLat,startLng],{icon:carIcon}).addTo(acceptedMap).bindPopup(`Driver ${driverChosen} is coming!`);
+    // Start & Destination markers
+    L.marker([startLat, startLng]).addTo(acceptedMap).bindPopup("Start").openPopup();
+    L.marker([destLat, destLng]).addTo(acceptedMap).bindPopup("Destination");
+    L.polyline([[startLat, startLng], [destLat, destLng]], { color: "blue" }).addTo(acceptedMap);
 
+    // Driver marker
+    const carIcon = L.icon({
+      iconUrl: "https://img.icons8.com/color/48/car.png",
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    });
+    L.marker([startLat, startLng], { icon: carIcon }).addTo(acceptedMap)
+      .bindPopup(`Driver ${driverChosen} is coming!`);
+
+    // Countdown timer
     const timerEl = document.getElementById("timer");
-    const interval = setInterval(()=>{
-      if(countdown<=0){clearInterval(interval); timerEl.textContent="Driver has arrived!";}
-      else {const mins=Math.floor(countdown/60); const secs=countdown%60; timerEl.textContent=`${mins}:${secs.toString().padStart(2,"0")} remaining`; countdown--;}
-    },1000);
+    const interval = setInterval(() => {
+      if (countdown <= 0) {
+        clearInterval(interval);
+        timerEl.textContent = "Driver has arrived!";
+      } else {
+        const mins = Math.floor(countdown / 60);
+        const secs = countdown % 60;
+        timerEl.textContent = `${mins}:${secs.toString().padStart(2, "0")} remaining`;
+        countdown--;
+      }
+    }, 1000);
 
-    const driverNames = ["John","Marvin","Bautista","Llamas","Naufal","Shukran","Omar"];
+    // Driver details
+    const driverNames = ["John","Marvin","Bautista","Llamas","Naufal","Shukran","Omar", "Fern"];
     const carModels = ["Lamborghini Sesto Elemento","Nissan Skyline GT-R R34","Lamborghini Countach","Pagani Zonda","Ferrari Enzo","Porsche Carrera GT"];
-    function generateCarPlate(){const l="ABCDEFGHIJKLMNOPQRSTUVWXYZ"; return "S"+l.charAt(getRandomInt(0,25))+l.charAt(getRandomInt(0,25))+getRandomInt(1000,9999)+l.charAt(getRandomInt(0,25));}
-    function generateRating(){return (Math.random()*1.5+3.5).toFixed(1);}
-    function loadDriver(){const randomDriver=driverNames[getRandomInt(0,driverNames.length-1)]; const randomCar=carModels[getRandomInt(0,carModels.length-1)]; const randomPlate=generateCarPlate(); const randomRating=generateRating();
-      document.getElementById("driverName").textContent=randomDriver;
-      document.getElementById("carModel").textContent=randomCar;
-      document.getElementById("carPlate").textContent=randomPlate;
-      document.getElementById("driverRating").textContent=randomRating;
+    const driverImages = [
+      "driver.png",
+      "driver1.png",
+      "driver2.png",
+      "driver3.png"
+    ];
+
+    function generateCarPlate() {
+      const l = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      return "S" + l.charAt(getRandomInt(0, 25)) + l.charAt(getRandomInt(0, 25)) + getRandomInt(1000, 9999) + l.charAt(getRandomInt(0, 25));
     }
+
+    function generateRating() {
+      return (Math.random() * 1.5 + 3.5).toFixed(1);
+    }
+
+    function loadDriver() {
+      const randomDriver = driverNames[getRandomInt(0, driverNames.length - 1)];
+      const randomCar = carModels[getRandomInt(0, carModels.length - 1)];
+      const randomPlate = generateCarPlate();
+      const randomRating = generateRating();
+      const randomImage = driverImages[getRandomInt(0, driverImages.length - 1)];
+
+      document.getElementById("driverName").textContent = randomDriver;
+      document.getElementById("carModel").textContent = randomCar;
+      document.getElementById("carPlate").textContent = randomPlate;
+      document.getElementById("driverRating").textContent = randomRating;
+
+      const driverImgEl = document.querySelector(".driver-photo");
+      if (driverImgEl) driverImgEl.src = `images/${randomImage}`;
+    }
+
     loadDriver();
 
+    // Cancel booking button
     const cancelBtn = document.getElementById("cancelBtn");
-    if(cancelBtn) cancelBtn.onclick = ()=>{if(confirm("Are you sure you want to cancel this booking? A penalty fee will apply?")){alert("Your booking has been cancelled. A cancellation penalty of $5 will be charged."); window.location.href="index.html";}};
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        if (confirm("Are you sure you want to cancel this booking? A penalty fee will apply?")) {
+          alert("Your booking has been cancelled. A cancellation penalty of $5 will be charged.");
+          window.location.href = "index.html";
+        }
+      };
+    }
   }
 });
