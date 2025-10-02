@@ -21,6 +21,44 @@ Promise.all(regions.map(r => fetch(`data/${r}.json`).then(res => res.json())))
   .then(dataArrays => { locationsData = dataArrays.flat(); })
   .catch(err => console.error("Failed to load locations:", err));
 
+// ---------------- Auto-set Start Location ----------------
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const userLat = position.coords.latitude;
+      const userLng = position.coords.longitude;
+
+      // Wait until locationsData is loaded
+      const waitForLocations = setInterval(() => {
+        if (locationsData.length > 0) {
+          clearInterval(waitForLocations);
+
+          // Find the nearest location in your JSON
+          let nearest = locationsData[0];
+          let minDist = Infinity;
+          locationsData.forEach(loc => {
+            const lat = parseFloat(loc.LATITUDE);
+            const lng = parseFloat(loc.LONGITUDE);
+            const dist = Math.hypot(userLat - lat, userLng - lng);
+            if (dist < minDist) {
+              minDist = dist;
+              nearest = loc;
+            }
+          });
+
+          addStart([parseFloat(nearest.LATITUDE), parseFloat(nearest.LONGITUDE)]);
+          map.setView([parseFloat(nearest.LATITUDE), parseFloat(nearest.LONGITUDE)], 14);
+          searchInput.placeholder = "Search your destination...";
+        }
+      }, 50);
+    },
+    (error) => { console.warn("Geolocation error:", error); },
+    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+  );
+} else {
+  console.warn("Geolocation not supported.");
+}
+
 // ---------------- Autocomplete Search ----------------
 const searchInput = document.getElementById("locationSearch");
 const suggestionsList = document.getElementById("suggestions");
