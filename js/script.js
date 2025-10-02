@@ -232,8 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const driverImages = [
       "driver.png",
       "driver1.png",
-      "driver2.png",
-      "driver3.png"
+      "driver2.png"
     ];
 
     function generateCarPlate() {
@@ -274,4 +273,5 @@ document.addEventListener("DOMContentLoaded", () => {
       };
     }
   }
+
 });
